@@ -16,9 +16,11 @@
 (defparameter *this-directory* (filesystem-util:this-directory))
 
 (defparameter *test-file*
-  (filesystem-util:rebase-path "ll/test.ll"
+  (filesystem-util:rebase-path ;;"ll/test.ll"
+			       "ll/hello-world.ll"
+			       ;;"ll/copied-from-documentation.ll"
 			       *this-directory*))
-;;"/home/imac/install/llvm/3.8.0/src/test"
+(defparameter *test-directory* "/home/imac/install/llvm/3.8.0/src/test/")
 ;;"/home/imac/install/scheme2llvm/scheme2llvm.ll"
 
 (cg-llvm::define-cg-llvm-rule llvm-module ()
@@ -26,6 +28,8 @@
 	 (v do-llvm-elements
 	    #+nil
 	    #'print
+	    #'identity
+	    #+nil
 	    (lambda (x)
 	      (format t "~&~s~%" x))
 	    )
@@ -40,3 +44,18 @@
 	(esrap-liquid::parse-stream
 	 'llvm-module
 	 stream)))))
+
+(defun do-extension-files (&optional (extension "ll") (original-path *test-directory*))
+  (labels
+      ((rec (path)
+	 (dolist (thing (uiop:directory-files path))     
+	   (cond ((uiop:file-pathname-p thing)
+		  (when (string= extension
+				 (pathname-type thing))
+		    (format t "~&Parsing: ~a" (enough-namestring thing original-path))
+		    (do-llvm-elements thing)))))
+
+	 (dolist (thing (uiop:subdirectories path))
+	   (cond ((uiop:directory-pathname-p thing)
+		  (rec thing))))))
+    (rec original-path)))
