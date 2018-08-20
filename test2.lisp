@@ -53,7 +53,10 @@
 		  (when (string= extension
 				 (pathname-type thing))
 		    (format t "~&Parsing: ~a" (enough-namestring thing original-path))
-		    (do-llvm-elements thing)))))
+		    (handler-case
+			(do-llvm-elements thing)
+		      (esrap-liquid::simple-esrap-error ()
+			(princ " [FAILED]")))))))
 
 	 (dolist (thing (uiop:subdirectories path))
 	   (cond ((uiop:directory-pathname-p thing)
