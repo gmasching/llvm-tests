@@ -1,4 +1,7 @@
-(in-package :cg-llvm-tests)
+(defpackage #:llvm-stuff
+  (:use :cl
+	:esrap-liquid))
+(in-package #:llvm-stuff)
 
 (defun wot ()
   (cg-llvm:cg-llvm-parse
@@ -51,33 +54,48 @@ define i32 @main() { ; i32()*
 ;!0 = !{i32 42, null, !\"string\"}
 !foo = !{!0}
 "))
-
+#+nil
 (v do-llvm-elements (lambda (x)
 		      (format t "~&~s~%" x)))
 					;#+nil
 
 
-(define-cg-llvm-rule do-llvm-elements (fun)
+(cg-llvm::define-cg-llvm-rule do-llvm-elements (fun)
   (block out
     (loop
-       (? whitespace)
-       (let ((element (time (v llvm-element))))
+       (? cg-llvm::whitespace)
+       (let ((element (v cg-llvm::llvm-element)))
 	 (if element
 	     (funcall fun element)
 	     (return-from out)))))
   (values))
 
-"/home/imac/install/llvm/3.8.0/src/test"
-(defun huh ()
-  (with-open-file
-      (stream 
-       "/home/imac/Documents/cg-llvm-test/test.ll"
+(defparameter *this-directory* (filesystem-util:this-directory))
 
+(defparameter *test-file*
+  (filesystem-util:rebase-path "test.ll"
+			       *this-directory*))
+"/home/imac/install/llvm/3.8.0/src/test"
+
+(cg-llvm::define-cg-llvm-rule llvm-module ()
+  (progm (? cg-llvm::whitespace)
+	 (v do-llvm-elements #'print)
+	 #+nil
+	 `(module ,@(v llvm-elements))
+	 (? cg-llvm::whitespace)))
+
+(defun huh (&optional (file *test-file*))
+  (with-open-file
+      (stream
+       file
        ;;"/home/imac/install/scheme2llvm/scheme2llvm.ll"
        )
-    (cg-llvm::cg-llvm-parse-stream
-     'cg-llvm::llvm-module
-     stream)))
+    (cg-llvm::with-cg-llvm-rules
+      (cg-llvm::with-cg-llvm-contexts
+	(esrap-liquid::parse-stream
+	 'llvm-module
+	 stream)))))
+#+nil
 (test huh
   (is
    (not
