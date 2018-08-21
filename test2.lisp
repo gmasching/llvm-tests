@@ -49,12 +49,12 @@
 	 'llvm-module
 	 stream)))))
 
-(defun do-llvm-statement (&optional (file *test-file*))
+(defun do-llvm-statements (&optional (file *test-file*))
   (let ((stream (alexandria:read-file-into-string file)))
     (cg-llvm::with-cg-llvm-rules ;;FIXME::refactor define-esrap-env?
       (cg-llvm::with-cg-llvm-contexts ;;FIXME::refactor define-esrap-env?
 	(esrap-liquid::parse
-	 'cg-llvm::any-statement
+	 'cg-llvm::any-statements
 	 stream)))))
 
 (defparameter *test-files* nil)
