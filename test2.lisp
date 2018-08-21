@@ -77,16 +77,26 @@
   (setf *test-files* (nreverse *test-files*))
   (values))
 
+(defparameter *count* 0)
+(defparameter *correct* 0)
 (defun do-tests (&optional (start 0))
+  (setf *count* 0)
+  (setf *correct* 0)
   (dolist (thing (nthcdr start *test-files*))
     (incf start)    
     (format t "~&       Parsing: ~a"
 	    thing)
+    (incf *count*)
     (handler-case
-	(do-llvm-elements (merge-pathnames thing *test-directory*))
+	(progn (do-llvm-elements (merge-pathnames thing *test-directory*))
+	       (incf *correct*))
       (esrap-liquid::simple-esrap-error ()
 	(format t "~&[FAILED]"))
       (error (c)
 	(format t "~&other error")
 	(print c)
 	nil))))
+
+(defun correctness ()
+  (* 100.0) (/ *correct*
+	       *count*))
