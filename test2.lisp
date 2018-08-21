@@ -84,19 +84,25 @@
   (setf *correct* 0)
   (dolist (thing (nthcdr start *test-files*))
     (incf start)    
-    (format t "~&       Parsing: ~a"
+    (format t "
+Testnum: ~a 
+Correct: ~a
+Parsing: ~a"
+	    *count*
+	    (correctness)
 	    thing)
     (incf *count*)
     (handler-case
 	(progn (do-llvm-elements (merge-pathnames thing *test-directory*))
 	       (incf *correct*))
       (esrap-liquid::simple-esrap-error ()
-	(format t "~&[FAILED]"))
+	(format t "~&~%     [FAILED]~%"))
       (error (c)
-	(format t "~&other error")
+	(format t "~&~%    other error~%")
 	(print c)
 	nil))))
 
 (defun correctness ()
-  (* 100.0) (/ *correct*
-	       *count*))
+  (unless (zerop *count*)
+    (* 100.0 (/ *correct*
+		*count*))))
