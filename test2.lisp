@@ -49,12 +49,17 @@
 	 'llvm-module
 	 stream)))))
 
+(cg-llvm::define-cg-llvm-rule any ()
+  (progm (? cg-llvm::whitespace)
+	 (v cg-llvm::any-statements)
+	 (? cg-llvm::whitespace)))
+
 (defun do-llvm-statements (&optional (file *test-file*))
   (let ((stream (alexandria:read-file-into-string file)))
     (cg-llvm::with-cg-llvm-rules ;;FIXME::refactor define-esrap-env?
       (cg-llvm::with-cg-llvm-contexts ;;FIXME::refactor define-esrap-env?
 	(esrap-liquid::parse
-	 'cg-llvm::any-statements
+	 'any
 	 stream)))))
 
 (defparameter *test-files* nil)
