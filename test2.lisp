@@ -21,8 +21,8 @@
 			       ;;"ll/copied-from-documentation.ll"
 			       *this-directory*))
 (defparameter *test-directory*
-  "/home/imac/install/llvm/3.8.0/src/test/"
-  ;"/home/imac/install/llvm/6.0.0/src/test/"
+  ;"/home/imac/install/llvm/3.8.0/src/test/"
+  "/home/imac/install/llvm/6.0.0/src/test/"
   )
 ;;"/home/imac/install/scheme2llvm/scheme2llvm.ll"
 
