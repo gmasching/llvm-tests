@@ -80,11 +80,16 @@
   (setf *test-files* (nreverse *test-files*))
   (values))
 
+(defparameter *failed-tests* nil)
+
 (defparameter *count* 0)
 (defparameter *correct* 0)
 (defun do-tests (&optional (start 0))
+  (unless *test-files*
+    (find-test-files))
   (setf *count* 0)
   (setf *correct* 0)
+  (setf *failed-tests* nil)
   (dolist (thing (nthcdr start *test-files*))
     (incf start)    
     (format t "
@@ -95,15 +100,19 @@ Parsing: ~a"
 	    (correctness)
 	    thing)
     (incf *count*)
-    (handler-case
-	(progn (do-llvm-elements (merge-pathnames thing *test-directory*))
-	       (incf *correct*))
-      (esrap-liquid::simple-esrap-error ()
-	(format t "~&~%     [FAILED]~%"))
-      (error (c)
-	(format t "~&~%    other error~%")
-	(print c)
-	nil))))
+    (let ((completed? nil)) 
+      (handler-case
+	  (progn (do-llvm-elements (merge-pathnames thing *test-directory*))
+		 (setf completed? t)
+		 (incf *correct*))
+	(esrap-liquid::simple-esrap-error ()
+	  (format t "~&~%     [FAILED]~%"))
+	(error (c)
+	  (format t "~&~%    other error~%")
+	  (print c)
+	  nil))
+      (unless completed?
+       (push thing *failed-tests*)))))
 
 (defun correctness ()
   (unless (zerop *count*)
