@@ -62,3 +62,6 @@
 	   (cond ((uiop:directory-pathname-p thing)
 		  (rec thing))))))
     (rec original-path)))
+
+(defun do-test-file (path)
+  (do-llvm-elements (merge-pathnames path *test-directory*)))
