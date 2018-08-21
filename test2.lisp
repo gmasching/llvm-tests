@@ -85,13 +85,13 @@
 
 (defparameter *count* 0)
 (defparameter *correct* 0)
-(defun do-tests (&optional (start 0))
+(defun do-tests (&optional (files-list *test-files*) (start 0))
   (unless *test-files*
     (find-test-files))
   (setf *count* 0)
   (setf *correct* 0)
   (setf *failed-tests* nil)
-  (dolist (thing (nthcdr start *test-files*))
+  (dolist (thing (nthcdr start files-list))
     (incf start)    
     (format t "
 Testnum: ~a 
