@@ -45,19 +45,19 @@
 	 'llvm-module
 	 stream)))))
 
-(defun do-extension-files (&optional (extension "ll") (original-path *test-directory*))
+(defparameter *test-files* nil)
+
+(defun do-extension-files (&optional
+			     (fun 'test)
+			     (extension "ll")
+			     (original-path *test-directory*))
   (labels
       ((rec (path)
 	 (dolist (thing (uiop:directory-files path))     
 	   (cond ((uiop:file-pathname-p thing)
 		  (when (string= extension
 				 (pathname-type thing))
-		    (format t "~&Parsing: ~a" (enough-namestring thing original-path))
-		    (handler-case
-			(do-llvm-elements thing)
-		      (esrap-liquid::simple-esrap-error ()
-			(princ " [FAILED]")))))))
-
+		    (funcall fun thing original-path)))))
 	 (dolist (thing (uiop:subdirectories path))
 	   (cond ((uiop:directory-pathname-p thing)
 		  (rec thing))))))
@@ -65,3 +65,28 @@
 
 (defun do-test-file (path)
   (do-llvm-elements (merge-pathnames path *test-directory*)))
+
+
+
+(defun find-test-files ()
+  (setf *test-files* nil)
+  (do-extension-files
+      (lambda (thing original-path)
+	(push (enough-namestring thing original-path)
+	      *test-files*)))
+  (setf *test-files* (nreverse *test-files*))
+  (values))
+
+(defun do-tests (&optional (start 0))
+  (dolist (thing (nthcdr start *test-files*))
+    (incf start)    
+    (format t "~&       Parsing: ~a"
+	    thing)
+    (handler-case
+	(do-llvm-elements (merge-pathnames thing *test-directory*))
+      (esrap-liquid::simple-esrap-error ()
+	(format t "~&[FAILED]"))
+      (error (c)
+	(format t "~&other error")
+	(print c)
+	nil))))
