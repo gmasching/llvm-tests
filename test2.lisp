@@ -16,8 +16,8 @@
 (defparameter *this-directory* (filesystem-util:this-directory))
 
 (defparameter *test-file*
-  (filesystem-util:rebase-path ;;"ll/test.ll"
-			       "ll/hello-world.ll"
+  (filesystem-util:rebase-path "ll/test.ll"
+			       ;;"ll/hello-world.ll"
 			       ;;"ll/copied-from-documentation.ll"
 			       *this-directory*))
 (defparameter *test-directory*
@@ -47,6 +47,14 @@
       (cg-llvm::with-cg-llvm-contexts ;;FIXME::refactor define-esrap-env?
 	(esrap-liquid::parse
 	 'llvm-module
+	 stream)))))
+
+(defun do-llvm-statement (&optional (file *test-file*))
+  (let ((stream (alexandria:read-file-into-string file)))
+    (cg-llvm::with-cg-llvm-rules ;;FIXME::refactor define-esrap-env?
+      (cg-llvm::with-cg-llvm-contexts ;;FIXME::refactor define-esrap-env?
+	(esrap-liquid::parse
+	 'cg-llvm::any-statement
 	 stream)))))
 
 (defparameter *test-files* nil)
