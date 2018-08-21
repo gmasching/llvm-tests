@@ -29,8 +29,9 @@
 (cg-llvm::define-cg-llvm-rule llvm-module ()
   (progm (? cg-llvm::whitespace)
 	 (v do-llvm-elements
-	    #+nil
+	    ;#+nil
 	    #'print
+	    #+nil
 	    #'identity
 	    #+nil
 	    (lambda (x)
