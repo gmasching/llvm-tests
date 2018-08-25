@@ -1,6 +1,3 @@
-(defpackage #:llvm-stuff
-  (:use :cl
-	:esrap-liquid))
 (in-package #:llvm-stuff)
 
 (cg-llvm::define-cg-llvm-rule do-llvm-elements (fun)
