@@ -62,6 +62,13 @@
 	 'any
 	 stream)))))
 
+(defun parse-llvm-statement (string)
+  (cg-llvm::with-cg-llvm-rules ;;FIXME::refactor define-esrap-env?
+    (cg-llvm::with-cg-llvm-contexts ;;FIXME::refactor define-esrap-env?
+      (esrap-liquid::parse
+       'cg-llvm::any-statement
+       string))))
+
 (defparameter *test-files* nil)
 
 (defun do-extension-files (&optional
