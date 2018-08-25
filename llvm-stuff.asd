@@ -10,4 +10,5 @@
    #:filesystem-util)
   :serial t
   :components
-  ((:file "test2")))
+  ((:file "failed-tests")
+   (:file "test2")))
