@@ -38,13 +38,33 @@
 	 `(module ,@(v llvm-elements))
 	 (? cg-llvm::whitespace)))
 
+(defmacro parse-thing (exp string)
+  `(cg-llvm::with-cg-llvm-rules ;;FIXME::refactor define-esrap-env?
+     (cg-llvm::with-cg-llvm-contexts ;;FIXME::refactor define-esrap-env?
+       (esrap-liquid::parse
+	,exp
+	,string))))
+
+(mapcar
+ (lambda (name)
+   (setf (gethash name esrap-liquid::*not-tracing*)
+	 t))
+ '(cg-llvm::llvm-comment
+   cg-llvm::whitespace))
+
+(defun toggle-trace-rules ()
+  (setf esrap-liquid::*debug-trace-rules*
+	(not esrap-liquid::*debug-trace-rules*)))
+
+(defmacro parse-thing2 (exp string)
+  `(let ((esrap-liquid::*debug-trace-rules* t))
+     (parse-thing ,exp ,string)))
+
 (defun do-llvm-elements (&optional (file *test-file*))
   (let ((stream (alexandria:read-file-into-string file)))
-    (cg-llvm::with-cg-llvm-rules ;;FIXME::refactor define-esrap-env?
-      (cg-llvm::with-cg-llvm-contexts ;;FIXME::refactor define-esrap-env?
-	(esrap-liquid::parse
-	 'llvm-module
-	 stream)))))
+    (parse-thing
+     'llvm-module
+     stream)))
 
 (cg-llvm::define-cg-llvm-rule any ()
   (progm (? cg-llvm::whitespace)
@@ -53,18 +73,14 @@
 
 (defun do-llvm-statements (&optional (file *test-file*))
   (let ((stream (alexandria:read-file-into-string file)))
-    (cg-llvm::with-cg-llvm-rules ;;FIXME::refactor define-esrap-env?
-      (cg-llvm::with-cg-llvm-contexts ;;FIXME::refactor define-esrap-env?
-	(esrap-liquid::parse
-	 'any
-	 stream)))))
+    (parse-thing
+     'any
+     stream)))
 
 (defun parse-llvm-statement (string)
-  (cg-llvm::with-cg-llvm-rules ;;FIXME::refactor define-esrap-env?
-    (cg-llvm::with-cg-llvm-contexts ;;FIXME::refactor define-esrap-env?
-      (esrap-liquid::parse
-       'cg-llvm::any-statement
-       string))))
+  (parse-thing
+   'cg-llvm::any-statement
+   string))
 
 (defparameter *test-files* nil)
 
