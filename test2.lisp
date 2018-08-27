@@ -166,3 +166,14 @@ Parsing: ~a"
 	(plump:parse  
 	 file))
   (setf *manual* (plump:get-element-by-id *document* "llvm-language-reference-manual")))
+
+
+(defun print-div (div)
+  (print (plump:attribute div "id")))
+
+(defun foob (&optional (div *manual*))
+  (map nil
+       #'print-div
+	(plump:child-elements div)))
+
+(define-symbol-macro $$ sb-impl::*inspected*)
