@@ -243,15 +243,17 @@ Parsing: ~a"
       (0 nil)
       (otherwise (error "too many kids found")))))
 
-(defun huh ()
-  ;;the section where some instructions are stored
+(defun huh2 ()
+    ;;the section where some instructions are stored
   (setf *instruction-reference* (plump:get-element-by-id *manual* "instruction-reference"))
+  (huh *instruction-reference*)
+  (huh (plump:get-element-by-id *manual* "intrinsic-functions")))
 
-  ;;
+(defun huh (&optional (ref *instruction-reference*))
   (let ((sections ())
 	(instructions ()))
     ;;iterate over groups of instructions
-    (do-child-elements (child) *instruction-reference*
+    (do-child-elements (child) ref
       (when (string-equal
 	     "section"
 	     (plump:attribute child "class"))
@@ -265,45 +267,56 @@ Parsing: ~a"
 	  (push child instructions))))
 
     (dolist (x instructions)
-      ;;(print-div x)
+     ;; (print-div x)
 
-      ;;The name
-      (print
-       (mapcar
-	(lambda (span)
-	  (plump:text
-	   (naref
-	    0
-	    (plump:children
-	     span))))
-	(nreverse
-	 (plump:get-elements-by-tag-name 
-	  (first
-	   (plump:get-elements-by-tag-name
-	    ;;get the header like h4,
-	    (first
-	     (get-elements-by (child) x
-	       (header-p child)))
-	    
-	    "code"))
-	  "span"))))
+      (block nope
+	;;The name
+	(let ((head ;;get the header like h4,
+	       (first
+		(get-elements-by (child) x
+		  (header-p child)))))	  
+	  (when (not head)
+	    (return-from nope))
+	  (let ((foo
+		 (first (plump:get-elements-by-tag-name
+			 head		      
+			 "code"))))
+	    (when (not foo)
+	      (return-from nope))
+	    (print
+	     (mapcar
+	      (lambda (span)
+		(plump:text
+		 (naref
+		  0
+		  (plump:children
+		   span))))
+	      (nreverse
+	       (plump:get-elements-by-tag-name 
+		foo
+		"span"))))))
 
-      ;;locate the syntax
-      (let ((acc nil))
-	(dolist (thing
-		  (coerce 
-		   (plump:children
-		    (first
-		     (plump:get-elements-by-tag-name 
-		      (parent-after
-		       x
-		       (car (find-text-recursively x "Syntax:")))
-		      "pre")))
-		   'list))
-	  (let ((text (if (plump:text-node-p thing)
-			  thing
-			  (one-or-zero-child thing))))
-	    (when text
-	      (push (plump:text text) acc))))
-	(setf acc (nreverse acc))
-	(print (esrap-liquid:text acc))))))
+	;;locate the syntax
+	(let ((acc nil)
+	      (meh (plump:get-elements-by-tag-name
+		    (parent-after
+		     x
+		     (car (find-text-recursively x "Syntax:")))
+		    "pre")))
+	  (dolist (thing
+		    (coerce 
+		     (plump:children
+		      (first
+		       meh))
+		     'list))
+	    (let ((text (if (plump:text-node-p thing)
+			    thing
+			    (one-or-zero-child thing))))
+	      (when text
+		(push (plump:text text) acc))))
+	  (setf acc (nreverse acc))
+	  (terpri)
+	  (print ;;acc
+		 ;#+nil
+		 (esrap-liquid:text acc)
+		 ))))))
