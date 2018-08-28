@@ -247,7 +247,8 @@ Parsing: ~a"
     ;;the section where some instructions are stored
   (setf *instruction-reference* (plump:get-element-by-id *manual* "instruction-reference"))
   (huh *instruction-reference*)
-  (huh (plump:get-element-by-id *manual* "intrinsic-functions")))
+ ;; (huh (plump:get-element-by-id *manual* "intrinsic-functions"))
+  )
 
 (defun huh (&optional (ref *instruction-reference*))
   (let ((sections ())
@@ -283,18 +284,20 @@ Parsing: ~a"
 			 "code"))))
 	    (when (not foo)
 	      (return-from nope))
-	    (print
-	     (mapcar
-	      (lambda (span)
-		(plump:text
-		 (naref
-		  0
-		  (plump:children
-		   span))))
-	      (nreverse
-	       (plump:get-elements-by-tag-name 
-		foo
-		"span"))))))
+	    (let ((instruction-name
+		   (mapcar
+		     (lambda (span)
+		       (plump:text
+			(naref
+			 0
+			 (plump:children
+			  span))))
+		     (nreverse
+		      (plump:get-elements-by-tag-name 
+		       foo
+		       "span")))))
+	      ;;(print instruction-name)
+	      )))
 
 	;;locate the syntax
 	(let ((acc nil)
@@ -315,8 +318,10 @@ Parsing: ~a"
 	      (when text
 		(push (plump:text text) acc))))
 	  (setf acc (nreverse acc))
-	  (terpri)
-	  (print ;;acc
-		 ;#+nil
-		 (esrap-liquid:text acc)
-		 ))))))
+	  #+nil
+	  (print (esrap-liquid:text acc)
+		 )
+	  (progn
+	    (terpri)
+	    (princ (esrap-liquid:text acc)
+		   )))))))
