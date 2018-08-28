@@ -179,8 +179,8 @@ Parsing: ~a"
 (define-symbol-macro $$ sb-impl::*inspected*)
 
 (defmacro do-child-elements ((child-var) node-form &body body)
-  `(loop for ,child-var across (plump children ,node-form)
-      do (when (element-p ,child-var)
+  `(loop for ,child-var across (plump:children ,node-form)
+      do (when (plump:element-p ,child-var)
 	   ,@body)))
 
 #+nil
@@ -193,8 +193,27 @@ Parsing: ~a"
        (scanren ,node-form))))
 
 (defparameter *instruction-reference* nil)
+
 (defun huh ()
+  ;;the section where some instructions are stored
   (setf *instruction-reference* (plump:get-element-by-id *manual* "instruction-reference"))
-  (let ((children (plump:children *instruction-reference*))))
-  (do-child-elements))
-(plump:get-elements-by-tag-name )
+
+  ;;
+  (let ((sections ())
+	(instructions ()))
+    ;;iterate over groups of instructions
+    (do-child-elements (child) *instruction-reference*
+      (when (string-equal
+	     "section"
+	     (plump:attribute child "class"))
+	(push child sections)))
+    ;;iterate over each instruction in the subgroup
+    (dolist (section sections)
+      (do-child-elements (child) section
+	(when (string-equal
+	       "section"
+	       (plump:attribute child "class"))
+	  (push child instructions))))
+
+    (dolist (x instructions)
+      (print-div x))))
