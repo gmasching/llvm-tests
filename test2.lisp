@@ -183,16 +183,65 @@ Parsing: ~a"
       do (when (plump:element-p ,child-var)
 	   ,@body)))
 
-#+nil
-(defmacro do-elements-recursively ((child-var) node-form &body body)
-  (with-gensyms (node)
-    `(labels ((scanren (,node)
-		(do-child-elements (child-var) ,node
-		  ,@body 
-		  (scanren ,child-var))))
-       (scanren ,node-form))))
+(defmacro do-children ((child-var) node-form &body body)
+  `(loop for ,child-var across (plump:children ,node-form)
+      do (progn
+	   ,@body)))
+
+;;;;search child elements. when body returns true,
+;;;;add element to list to be returned.
+(defmacro get-elements-by ((child-var) node-form &body body)
+  (with-gensyms (finds)
+    `(let ((,finds))
+       (do-child-elements (,child-var) ,node-form
+	 (when ,@body
+	   (push ,child-var ,finds)) )
+       ,finds)))
+
+;;;;recursive version
+(defmacro get-children-by-recursively ((child-var) node-form &body body)
+  (with-gensyms (node finds)
+    `(let ((,finds))      
+       (labels ((scanren (,node)
+		  (do-children (,child-var) ,node
+		    (when ,@body
+		      (push ,child-var ,finds))
+		    (when (plump:element-p ,child-var)
+		      (scanren ,child-var)))))
+	 (scanren ,node-form))
+       ,finds)))
+
+(defun find-text-recursively (node &optional (string "Syntax:"))
+  (get-children-by-recursively (child) node
+    (and
+     (plump:text-node-p child)
+     (string-equal string
+		   (plump:text child)))))
+
+(defmacro naref (&rest args)
+  `(aref ,(car (last args)) ,@(butlast args)))
 
 (defparameter *instruction-reference* nil)
+
+(defun header-p (node)
+  (char= #\h (aref (plump:tag-name node) 0)))
+
+(defun parent-after (known-parent known-descendant)
+  (let ((old known-descendant)
+	(parent (plump:parent known-descendant)))
+    (block exit
+      (loop
+	 (when (eq known-parent
+		   parent)
+	   (return-from exit old))
+	 (setf old parent)
+	 (setf parent (plump:parent parent))))))
+(defun one-or-zero-child (node)
+  (let ((children (plump:children node)))
+    (case (length children)
+      (1 (naref 0 children))
+      (0 nil)
+      (otherwise (error "too many kids found")))))
 
 (defun huh ()
   ;;the section where some instructions are stored
@@ -216,4 +265,45 @@ Parsing: ~a"
 	  (push child instructions))))
 
     (dolist (x instructions)
-      (print-div x))))
+      ;;(print-div x)
+
+      ;;The name
+      (print
+       (mapcar
+	(lambda (span)
+	  (plump:text
+	   (naref
+	    0
+	    (plump:children
+	     span))))
+	(nreverse
+	 (plump:get-elements-by-tag-name 
+	  (first
+	   (plump:get-elements-by-tag-name
+	    ;;get the header like h4,
+	    (first
+	     (get-elements-by (child) x
+	       (header-p child)))
+	    
+	    "code"))
+	  "span"))))
+
+      ;;locate the syntax
+      (let ((acc nil))
+	(dolist (thing
+		  (coerce 
+		   (plump:children
+		    (first
+		     (plump:get-elements-by-tag-name 
+		      (parent-after
+		       x
+		       (car (find-text-recursively x "Syntax:")))
+		      "pre")))
+		   'list))
+	  (let ((text (if (plump:text-node-p thing)
+			  thing
+			  (one-or-zero-child thing))))
+	    (when text
+	      (push (plump:text text) acc))))
+	(setf acc (nreverse acc))
+	(print (esrap-liquid:text acc))))))
