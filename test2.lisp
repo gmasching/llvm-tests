@@ -177,3 +177,24 @@ Parsing: ~a"
 	(plump:child-elements div)))
 
 (define-symbol-macro $$ sb-impl::*inspected*)
+
+(defmacro do-child-elements ((child-var) node-form &body body)
+  `(loop for ,child-var across (plump children ,node-form)
+      do (when (element-p ,child-var)
+	   ,@body)))
+
+#+nil
+(defmacro do-elements-recursively ((child-var) node-form &body body)
+  (with-gensyms (node)
+    `(labels ((scanren (,node)
+		(do-child-elements (child-var) ,node
+		  ,@body 
+		  (scanren ,child-var))))
+       (scanren ,node-form))))
+
+(defparameter *instruction-reference* nil)
+(defun huh ()
+  (setf *instruction-reference* (plump:get-element-by-id *manual* "instruction-reference"))
+  (let ((children (plump:children *instruction-reference*))))
+  (do-child-elements))
+(plump:get-elements-by-tag-name )
