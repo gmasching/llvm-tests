@@ -7,7 +7,6 @@
    #:cg-llvm
    #:kaleidoscope256
    #:utility
-   #:filesystem-util
    #:plump)
   :serial t
   :components

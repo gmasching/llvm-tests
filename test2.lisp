@@ -10,13 +10,14 @@
 	     (return-from out)))))
   (values))
 
-(defparameter *this-directory* (filesystem-util:this-directory))
+(defparameter *this-directory*
+  (asdf:system-source-directory :llvm-stuff))
 
 (defparameter *test-file*
-  (filesystem-util:rebase-path "ll/test.ll"
-			       ;;"ll/hello-world.ll"
-			       ;;"ll/copied-from-documentation.ll"
-			       *this-directory*))
+  (utility:rebase-path "ll/test.ll"
+		       ;;"ll/hello-world.ll"
+		       ;;"ll/copied-from-documentation.ll"
+		       *this-directory*))
 (defparameter *test-directory*
   ;"/home/imac/install/llvm/3.8.0/src/test/"
   "/home/imac/install/llvm/6.0.0/src/test/"
